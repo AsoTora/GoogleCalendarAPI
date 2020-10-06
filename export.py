@@ -2,7 +2,7 @@ import csv
 from glob import glob
 import datetime
 from datetime import datetime as dday
-import calendarapi
+from functions import create_event
 
 
 def get_info(worker):
@@ -11,7 +11,8 @@ def get_info(worker):
         with open(file, 'r') as csv_file:
             csv_dreader = csv.DictReader(csv_file)
             for person in csv_dreader:
-                if (person['\ufeff']) == worker:
+                print("**********", person, "**************")
+                if (next(iter(person.values()))) == worker:
                     return person
     raise "WorkerNotFoundError"
 
@@ -25,8 +26,11 @@ def send_info(worker):
     data = get_info(worker)
 
     # skip garbage columnes
-    for k in ['\ufeff', 'Position', 'Total: Paid hours']:
-        data.pop(k)
+    for k in ['', '\ufeff', 'Position', 'Total: Paid hours']:
+        try:
+            data.pop(k)
+        except KeyError:
+            continue
 
     # create a DB with all the necessary entries
     for day in data:
@@ -61,9 +65,9 @@ def send_info(worker):
             finally:
                 info['end_date'] = str(date_time_obj.date())
 
-        calendarapi.create_event(info)
+        create_event(info)
 
 
-if __name__ == '__main__':
-    # TODO: придумать, как использовать service нормально
-    send_info('Andrei Shvedau')
+# if __name__ == '__main__':
+#     # TODO: придумать, как использовать service нормально
+#     send_info('Andrei Shvedau')
